@@ -4,15 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --host 0.0.0.0 --port 3000",
     "check": "node scripts/runChecks.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-native": "^0.74.1",
     "react-native-web": "^0.19.12"
   },
   "devDependencies": {
@@ -23,3 +22,4 @@
     "vite": "^5.4.0"
   }
 }
+
