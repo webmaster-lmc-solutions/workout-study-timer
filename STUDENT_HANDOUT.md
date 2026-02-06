@@ -134,6 +134,8 @@ Then open the local URL Vite prints (usually `http://localhost:3000`).
 
 ### Run the checks (optional)
 
+You can run `npm run check` to verify your code.
+
 ```bash
 npm run check
 ```
