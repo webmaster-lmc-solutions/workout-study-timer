@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
-    "check": "node scripts/runChecks.mjs"
+    "check": "node --loader ts-node/esm scripts/runChecks.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -18,8 +18,8 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
     "vite": "^5.4.0"
   }
 }
-
