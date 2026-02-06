@@ -42,10 +42,9 @@ export function initialTimerState(mode: TimerMode): TimerState {
  * - non-numeric or empty -> return 25 (default)
  */
 export function safeParseMinutes(input: string): number {
-  // TODO: replace this placeholder implementation
   const n = Number(input);
-  if (!Number.isFinite(n)) return 25;
-  return Math.max(1, Math.min(180, Math.floor(n)));
+  if(!Number.isFinite(n)) return 25;
+  return math.max(1,Math.min(180, Math.floor(n)));
 }
 
 /**
@@ -58,10 +57,9 @@ export function safeParseMinutes(input: string): number {
  * - 600 -> "10:00"
  */
 export function formatTimeMMSS(totalSeconds: number): string {
-  // TODO: replace this placeholder implementation
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  return `${mins}:${secs}`; // intentionally wrong (no padding)
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`; // intentionally wrong (no padding)
 }
 
 /**
@@ -79,31 +77,37 @@ export function formatTimeMMSS(totalSeconds: number): string {
 export function timerReducer(state: TimerState, action: TimerAction): TimerState {
   switch (action.type) {
     case "START":
-      // TODO
+      if(state.remainingSeconds === 0) {
+        return {
+          ...state,
+          remainingSeconds: state.durationSeconds,
+          isRunning: true,
+        };
+      }
       return { ...state, isRunning: true };
 
     case "PAUSE":
-      // TODO
       return { ...state, isRunning: false };
 
     case "RESET":
-      // TODO
       return { ...state, remainingSeconds: state.durationSeconds, isRunning: false };
 
     case "SET_DURATION_MINUTES": {
-      // TODO
       const durationSeconds = action.minutes * 60;
       return { ...state, durationSeconds, remainingSeconds: durationSeconds, isRunning: false };
     }
 
     case "SWITCH_MODE":
-      // TODO
       return initialTimerState(action.mode);
 
     case "TICK":
-      // TODO: intentionally incomplete
       if (!state.isRunning) return state;
-      return { ...state, remainingSeconds: state.remainingSeconds - 1 };
+      const next = Math.max(0, state.remainingSeconds - 1);
+      return {
+        ...state,
+        remainingSeconds: next,
+        isRunning: next === 0 ? false : state.isRunning,
+      };
 
     default:
       return state;
