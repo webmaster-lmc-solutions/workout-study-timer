@@ -9,8 +9,8 @@ export type TimerMode = "study" | "workout";
 
 export type TimerState = {
   mode: TimerMode;
-  durationSeconds: number;    // total duration
-  remainingSeconds: number;   // countdown
+  durationSeconds: number; // total duration
+  remainingSeconds: number; // countdown
   isRunning: boolean;
 };
 
@@ -35,7 +35,7 @@ export function initialTimerState(mode: TimerMode): TimerState {
 }
 
 /**
- * TODO #1
+ * TODO #1 (DONE)
  * Implement a safe minutes parser:
  * - accepts strings like "25", "  15 ", "0", "999"
  * - returns a number in range 1..180
@@ -43,29 +43,37 @@ export function initialTimerState(mode: TimerMode): TimerState {
  */
 export function safeParseMinutes(input: string): number {
   // TODO: replace this placeholder implementation
-  const n = Number(input);
+  /* for this one, theo nly thing I really had to do was make sure to trim empty spaces
+  this can be solved by using input.trim. then if the input is empty just return 25*/
+  const trimmed = input.trim();
+  if (trimmed === "") return 25;
+  const n = Number(trimmed);
   if (!Number.isFinite(n)) return 25;
   return Math.max(1, Math.min(180, Math.floor(n)));
 }
 
 /**
- * TODO #2
+ * TODO #2 (DONE)
  * Format seconds as "MM:SS" (zero-padded).
  * Examples:
  * - 0   -> "00:00"
  * - 5   -> "00:05"
  * - 65  -> "01:05"
  * - 600 -> "10:00"
+ *
+ * This one was also fairly simple. For minutes, I convert the number to text then
+ * make it 2 characters long by adding zeros if necessary. Replicate for
+ * seconds as well.
  */
 export function formatTimeMMSS(totalSeconds: number): string {
   // TODO: replace this placeholder implementation
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  return `${mins}:${secs}`; // intentionally wrong (no padding)
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
 /**
- * TODO #3
+ * TODO #3 (DONE)
  * Reducer behavior rules:
  * - START: isRunning -> true (unless remainingSeconds === 0, then RESET first and start)
  * - PAUSE: isRunning -> false
@@ -75,11 +83,28 @@ export function formatTimeMMSS(totalSeconds: number): string {
  * - TICK: if isRunning:
  *     - decrement remainingSeconds by 1, but never below 0
  *     - when it reaches 0, automatically pause (isRunning false)
+ *
+ * This one was simple although there was more work to do. For the START case,
+ * all I did was make the timer reset when start is pressed, so timer wont show
+ * 00:00
+ *
+ * For TICK case I created a cosntant newRemaining, I subtract 1 second constantly
+ * but never go below 0, making it pause when 0 is hit by turning isRunning
+ * false
  */
-export function timerReducer(state: TimerState, action: TimerAction): TimerState {
+export function timerReducer(
+  state: TimerState,
+  action: TimerAction
+): TimerState {
   switch (action.type) {
     case "START":
-      // TODO
+      if (state.remainingSeconds === 0) {
+        return {
+          ...state,
+          remainingSeconds: state.durationSeconds,
+          isRunning: true,
+        };
+      }
       return { ...state, isRunning: true };
 
     case "PAUSE":
@@ -88,12 +113,21 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
 
     case "RESET":
       // TODO
-      return { ...state, remainingSeconds: state.durationSeconds, isRunning: false };
+      return {
+        ...state,
+        remainingSeconds: state.durationSeconds,
+        isRunning: false,
+      };
 
     case "SET_DURATION_MINUTES": {
       // TODO
       const durationSeconds = action.minutes * 60;
-      return { ...state, durationSeconds, remainingSeconds: durationSeconds, isRunning: false };
+      return {
+        ...state,
+        durationSeconds,
+        remainingSeconds: durationSeconds,
+        isRunning: false,
+      };
     }
 
     case "SWITCH_MODE":
@@ -103,7 +137,14 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
     case "TICK":
       // TODO: intentionally incomplete
       if (!state.isRunning) return state;
-      return { ...state, remainingSeconds: state.remainingSeconds - 1 };
+
+      const newRemaining = Math.max(0, state.remainingSeconds - 1);
+
+      return {
+        ...state,
+        remainingSeconds: newRemaining,
+        isRunning: newRemaining > 0,
+      };
 
     default:
       return state;
@@ -136,7 +177,10 @@ export function runBrowserChecks(): Array<{ name: string; ok: boolean }> {
   const s2 = timerReducer(s1, { type: "TICK" });
   const s3 = timerReducer(s2, { type: "TICK" });
 
-  checks.push({ name: "TICK never goes below 0", ok: s3.remainingSeconds >= 0 });
+  checks.push({
+    name: "TICK never goes below 0",
+    ok: s3.remainingSeconds >= 0,
+  });
   checks.push({
     name: "Auto-pause at 0",
     ok: s3.remainingSeconds !== 0 ? true : s3.isRunning === false,
