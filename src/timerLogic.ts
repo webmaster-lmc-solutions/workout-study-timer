@@ -9,8 +9,8 @@ export type TimerMode = "study" | "workout";
 
 export type TimerState = {
   mode: TimerMode;
-  durationSeconds: number;    // total duration
-  remainingSeconds: number;   // countdown
+  durationSeconds: number; // total duration
+  remainingSeconds: number; // countdown
   isRunning: boolean;
 };
 
@@ -43,7 +43,9 @@ export function initialTimerState(mode: TimerMode): TimerState {
  */
 export function safeParseMinutes(input: string): number {
   // TODO: replace this placeholder implementation
-  const n = Number(input);
+  const trimmed = input.trim();
+  if (trimmed == "") return 25;
+  const n = Number(trimmed);
   if (!Number.isFinite(n)) return 25;
   return Math.max(1, Math.min(180, Math.floor(n)));
 }
@@ -61,7 +63,10 @@ export function formatTimeMMSS(totalSeconds: number): string {
   // TODO: replace this placeholder implementation
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  return `${mins}:${secs}`; // intentionally wrong (no padding)
+
+  const m = String(mins).padStart(2, "0");
+  const s = String(secs).padStart(2, "0");
+  return `${m}:${s}`; // intentionally wrong (no padding)
 }
 
 /**
@@ -76,10 +81,20 @@ export function formatTimeMMSS(totalSeconds: number): string {
  *     - decrement remainingSeconds by 1, but never below 0
  *     - when it reaches 0, automatically pause (isRunning false)
  */
-export function timerReducer(state: TimerState, action: TimerAction): TimerState {
+export function timerReducer(
+  state: TimerState,
+  action: TimerAction
+): TimerState {
   switch (action.type) {
     case "START":
       // TODO
+      if (state.remainingSeconds == 0) {
+        return {
+          ...state,
+          remainingSeconds: state.durationSeconds,
+          isRunning: true,
+        };
+      }
       return { ...state, isRunning: true };
 
     case "PAUSE":
@@ -88,12 +103,21 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
 
     case "RESET":
       // TODO
-      return { ...state, remainingSeconds: state.durationSeconds, isRunning: false };
+      return {
+        ...state,
+        remainingSeconds: state.durationSeconds,
+        isRunning: false,
+      };
 
     case "SET_DURATION_MINUTES": {
       // TODO
       const durationSeconds = action.minutes * 60;
-      return { ...state, durationSeconds, remainingSeconds: durationSeconds, isRunning: false };
+      return {
+        ...state,
+        durationSeconds,
+        remainingSeconds: durationSeconds,
+        isRunning: false,
+      };
     }
 
     case "SWITCH_MODE":
@@ -103,7 +127,12 @@ export function timerReducer(state: TimerState, action: TimerAction): TimerState
     case "TICK":
       // TODO: intentionally incomplete
       if (!state.isRunning) return state;
-      return { ...state, remainingSeconds: state.remainingSeconds - 1 };
+      const nextRemaining = Math.max(0, state.remainingSeconds - 1);
+      return {
+        ...state,
+        remainingSeconds: nextRemaining,
+        isRunning: nextRemaining == 0 ? false : state.isRunning,
+      };
 
     default:
       return state;
@@ -136,7 +165,10 @@ export function runBrowserChecks(): Array<{ name: string; ok: boolean }> {
   const s2 = timerReducer(s1, { type: "TICK" });
   const s3 = timerReducer(s2, { type: "TICK" });
 
-  checks.push({ name: "TICK never goes below 0", ok: s3.remainingSeconds >= 0 });
+  checks.push({
+    name: "TICK never goes below 0",
+    ok: s3.remainingSeconds >= 0,
+  });
   checks.push({
     name: "Auto-pause at 0",
     ok: s3.remainingSeconds !== 0 ? true : s3.isRunning === false,
